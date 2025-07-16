@@ -34,6 +34,8 @@ class TouchSlider:
             lambda: self.cached_touched_pins[config["up_pin"]], 
             interval=DEBOUNCE_INTERVAL
         )
+        # Track activity channel state
+        self.activity_on = False
     
     def update_touch_cache(self):
         """Update the cached touch data from the MPR121."""
@@ -55,7 +57,7 @@ class TouchSlider:
             return False
             
         changed = False
-        
+        activity_changed = False
         try:
             # Update debouncers using cached data
             self.down_debouncer.update()
@@ -104,13 +106,26 @@ class TouchSlider:
                         if ENABLE_TOUCH_LOGGING:
                             logger.debug(lazy_format("Touch -> Slider (CC {}) = {}", self.config["cc_number"], new_value))
                         self.last_sent_value = new_value
-                        
+                
+            # Activity channel logic
+            activity_cc = self.config.get("activity_channel_cc")
+            if activity_cc is not None:
+                if changed:
+                    if not self.activity_on:
+                        self.midi.send(ControlChange(activity_cc, 127))
+                        self.activity_on = True
+                        activity_changed = True
+                else:
+                    if self.activity_on:
+                        self.midi.send(ControlChange(activity_cc, 0))
+                        self.activity_on = False
+                        activity_changed = True
         except Exception as e:
             logger.error(lazy_format("Error updating slider {}: {}", self.config["cc_number"], e))
             # Mark slider as disabled if we encounter persistent errors
             self.enabled = False
         
-        return changed
+        return changed or activity_changed
     
     def get_status(self):
         """Get status information about this slider."""

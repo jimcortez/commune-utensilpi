@@ -42,14 +42,15 @@ ENABLE_MIDI_LOGGING = False   # Set to True to log MIDI messages (can be slow)
 #   speed_initial: Initial step size for first touch
 #   speed: Base step size for continuous touch
 #   accel_rate: Acceleration rate for held touches
+#   activity_channel_cc: MIDI CC number for activity (on while slider is moving, off when idle)
 
 SLIDERS = [
-    {"mpr121_address": 0x1A, "down_pin": 0,  "up_pin": 1,  "cc_number": 3,  "both_press_cc": 9,  "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1},
-    {"mpr121_address": 0x1A, "down_pin": 2,  "up_pin": 3,  "cc_number": 14, "both_press_cc": 15, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1},
-    {"mpr121_address": 0x1B, "down_pin": 0,  "up_pin": 1,  "cc_number": 20, "both_press_cc": 21, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1},
-    {"mpr121_address": 0x1B, "down_pin": 2,  "up_pin": 3,  "cc_number": 22, "both_press_cc": 23, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1},
-    {"mpr121_address": 0x5A, "down_pin": 0,  "up_pin": 1,  "cc_number": 24, "both_press_cc": 25, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1},
-    {"mpr121_address": 0x5A, "down_pin": 2,  "up_pin": 3,  "cc_number": 26, "both_press_cc": 27, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1},
-    {"mpr121_address": 0x5B, "down_pin": 0,  "up_pin": 1,  "cc_number": 28, "both_press_cc": 29, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1},
-    {"mpr121_address": 0x5B, "down_pin": 2,  "up_pin": 3,  "cc_number": 30, "both_press_cc": 31, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1},
+    {"mpr121_address": 0x1A, "down_pin": 0,  "up_pin": 1,  "cc_number": 3,  "both_press_cc": 9,  "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 100},
+    {"mpr121_address": 0x1A, "down_pin": 2,  "up_pin": 3,  "cc_number": 14, "both_press_cc": 15, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 101},
+    {"mpr121_address": 0x1B, "down_pin": 0,  "up_pin": 1,  "cc_number": 20, "both_press_cc": 21, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 102},
+    {"mpr121_address": 0x1B, "down_pin": 2,  "up_pin": 3,  "cc_number": 22, "both_press_cc": 23, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 103},
+    {"mpr121_address": 0x5A, "down_pin": 0,  "up_pin": 1,  "cc_number": 24, "both_press_cc": 25, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 104},
+    {"mpr121_address": 0x5A, "down_pin": 2,  "up_pin": 3,  "cc_number": 26, "both_press_cc": 27, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 105},
+    {"mpr121_address": 0x5B, "down_pin": 0,  "up_pin": 1,  "cc_number": 28, "both_press_cc": 29, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 106},
+    {"mpr121_address": 0x5B, "down_pin": 2,  "up_pin": 3,  "cc_number": 30, "both_press_cc": 31, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 107},
 ] 

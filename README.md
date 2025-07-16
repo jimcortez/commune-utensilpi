@@ -101,3 +101,48 @@ This is just one part of the larger Commune art installation. The utensils compo
 ## License
 
 Part of the Commune art installation by Jim Cortez. Use freely. 
+
+---
+
+## CLI Slider Emulator for Testing (test_tool/slider_cli.py)
+
+This project includes a command-line tool to emulate the touch sliders and send real MIDI messages for development and testing on standard Python (not CircuitPython).
+
+### Setup
+
+1. **Python Version**: Ensure you are using Python 3.11 (see `.python-version` in `test_tool/`).
+2. **Install Dependencies**:
+   - From the project root, run:
+     ```sh
+     pip install -r test_tool/pyproject.toml
+     ```
+     Or, if using pip directly:
+     ```sh
+     pip install urwid mido python-rtmidi
+     ```
+
+### Usage
+
+1. **Run the CLI Tool**:
+   ```sh
+   cd test_tool
+   python slider_cli.py
+   ```
+2. **Select MIDI Output**:
+   - The tool prints available MIDI output ports at startup. Edit the `MidiInterface` line in `slider_cli.py` to use your desired port name (e.g., `'MadMapper In'`).
+
+3. **Controls**:
+   - **Arrow keys / j/k**: Move focus between sliders
+   - **Right/+**: Increase slider value
+   - **Left/-**: Decrease slider value
+   - **Space**: Trigger both-press (special CC)
+   - **b**: Release both-press
+   - **q**: Quit
+
+4. **Activity Channel**:
+   - The tool emulates the activity channel logic, including extended activity when both are pressed.
+
+### Notes
+- The tool uses the same config as the hardware, so any changes to `config.py` are reflected in the emulator.
+- All MIDI messages are sent using the `mido` library and require a working MIDI backend (e.g., `python-rtmidi`).
+- This tool does not affect the CircuitPython code and is for development/testing only. 

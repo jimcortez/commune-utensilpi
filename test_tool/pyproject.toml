@@ -1,0 +1,10 @@
+[project]
+name = "slider-cli"
+version = "0.1.0"
+description = "CLI tool to emulate touch sliders and send MIDI using urwid and mido."
+requires-python = ">=3.11"
+dependencies = [
+    "urwid",
+    "mido",
+    "python-rtmidi"
+] 

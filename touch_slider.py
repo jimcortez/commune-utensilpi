@@ -1,7 +1,7 @@
 import time
 from adafruit_midi.control_change import ControlChange
 from adafruit_debouncer import Debouncer
-from config import DEBOUNCE_INTERVAL, SLIDERS, ENABLE_TOUCH_LOGGING
+from config import DEBOUNCE_INTERVAL, SLIDERS, ENABLE_TOUCH_LOGGING, ACTIVITY_TIMEOUT, BOTH_PRESSED_TIMEOUT
 from logger import get_logger, lazy_format
 
 # Get logger instance
@@ -36,7 +36,23 @@ class TouchSlider:
         )
         # Track activity channel state
         self.activity_on = False
-    
+        self.last_activity_time = time.monotonic()
+
+    def activity_ping(self):
+        self.last_activity_time = time.monotonic()
+        activity_cc = self.config.get("activity_channel_cc")
+        if activity_cc is not None and not self.activity_on:
+            self.midi.send(ControlChange(activity_cc, 127))
+            self.activity_on = True
+
+    def activity_check(self):
+        activity_cc = self.config.get("activity_channel_cc")
+        timeout = BOTH_PRESSED_TIMEOUT if self.both_pressed else ACTIVITY_TIMEOUT
+        if activity_cc is not None and self.activity_on:
+            if (time.monotonic() - self.last_activity_time) > timeout:
+                self.midi.send(ControlChange(activity_cc, 0))
+                self.activity_on = False
+
     def update_touch_cache(self):
         """Update the cached touch data from the MPR121."""
         if not self.enabled:
@@ -71,6 +87,7 @@ class TouchSlider:
                         logger.debug(lazy_format("Touch -> Button (CC {}) ON", self.config["both_press_cc"]))
                     self.both_pressed = True
                     changed = True
+                    self.activity_ping()
             else:
                 if self.both_pressed and self.config["both_press_cc"] is not None:
                     self.midi.send(ControlChange(self.config["both_press_cc"], 0))
@@ -78,6 +95,7 @@ class TouchSlider:
                         logger.debug(lazy_format("Touch -> Button (CC {}) OFF", self.config["both_press_cc"]))
                     self.both_pressed = False
                     changed = True
+                    self.activity_ping()
                 
                 # Update value based on individual touches
                 if self.down_debouncer.value:
@@ -86,6 +104,7 @@ class TouchSlider:
                            else self.config["speed"] + (self.config["accel_rate"] * self.hold_count_down))
                     self.value = max(0, self.value - step)
                     changed = True
+                    self.activity_ping()
                 else:
                     self.hold_count_down = 0
                 
@@ -95,6 +114,7 @@ class TouchSlider:
                            else self.config["speed"] + (self.config["accel_rate"] * self.hold_count_up))
                     self.value = min(127, self.value + step)
                     changed = True
+                    self.activity_ping()
                 else:
                     self.hold_count_up = 0
                 
@@ -106,20 +126,8 @@ class TouchSlider:
                         if ENABLE_TOUCH_LOGGING:
                             logger.debug(lazy_format("Touch -> Slider (CC {}) = {}", self.config["cc_number"], new_value))
                         self.last_sent_value = new_value
-                
-            # Activity channel logic
-            activity_cc = self.config.get("activity_channel_cc")
-            if activity_cc is not None:
-                if changed:
-                    if not self.activity_on:
-                        self.midi.send(ControlChange(activity_cc, 127))
-                        self.activity_on = True
-                        activity_changed = True
-                else:
-                    if self.activity_on:
-                        self.midi.send(ControlChange(activity_cc, 0))
-                        self.activity_on = False
-                        activity_changed = True
+                        self.activity_ping()
+            # Activity channel logic is now handled by activity_ping and activity_check
         except Exception as e:
             logger.error(lazy_format("Error updating slider {}: {}", self.config["cc_number"], e))
             # Mark slider as disabled if we encounter persistent errors
@@ -220,3 +228,9 @@ def get_slider_status(touch_sliders):
         "enabled_cc_numbers": [s.config["cc_number"] for s in enabled_sliders],
         "disabled_cc_numbers": [s.config["cc_number"] for s in disabled_sliders]
     } 
+
+def activity_check_all_sliders(touch_sliders):
+    """Call activity_check for all sliders."""
+    for slider in touch_sliders:
+        if slider.enabled:
+            slider.activity_check() 

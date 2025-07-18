@@ -54,6 +54,18 @@ Each utensil connects to two pins on an MPR121 board:
 | 7       | 0x5B   | 0    | 1  | 28        | 29        |
 | 8       | 0x5B   | 2    | 3  | 30        | 31        |
 
+### Special Features
+
+#### Activity Channels
+Each slider has an activity channel (CC 100-107) that turns ON while the slider is being touched and OFF when idle.
+
+#### All Both-Press Toggle
+When all sliders are simultaneously in the "both-press" state (both pins touched) for 3 seconds, a special toggle activates (CC 108). This toggle:
+- Stays active for 10-30 seconds (minimum 10s, maximum 30s)
+- Can only be triggered once per minute (60-second cooldown)
+- Automatically deactivates when any slider leaves the both-press state (after minimum duration)
+- Can be configured in `config.py`
+
 ## How It Works
 
 1. **Touch Detection**: MPR121 boards detect when utensils are touched
@@ -72,11 +84,29 @@ Each utensil connects to two pins on an MPR121 board:
 
 ## Configuration
 
-Edit `config.py` to adjust:
-- Touch sensitivity
-- MIDI CC numbers
-- Display settings
-- Logging levels
+The system behavior can be customized by editing `config.py`:
+
+### Basic Settings
+- `LOOP_DELAY`: Main loop delay (default: 0.01s)
+- `DEBOUNCE_INTERVAL`: Touch debounce time (default: 0.1s)
+- `LOG_LEVEL`: Logging verbosity (ERROR, WARN, INFO, DEBUG)
+
+### All Both-Press Toggle Settings
+- `ALL_BOTH_PRESS_TOGGLE_ENABLED`: Enable/disable the feature (default: True)
+- `ALL_BOTH_PRESS_CC_NUMBER`: MIDI CC number for the toggle (default: 108)
+- `ALL_BOTH_PRESS_STABLE_TIME`: Time all sliders must be both-pressed before triggering (default: 3.0s)
+- `ALL_BOTH_PRESS_MIN_DURATION`: Minimum toggle duration (default: 10.0s)
+- `ALL_BOTH_PRESS_MAX_DURATION`: Maximum toggle duration (default: 30.0s)
+- `ALL_BOTH_PRESS_COOLDOWN`: Cooldown period between triggers (default: 60.0s)
+
+### Slider Configuration
+Each slider can be configured with:
+- `mpr121_address`: I2C address of the MPR121 board
+- `down_pin`/`up_pin`: Pin numbers for decreasing/increasing values
+- `cc_number`: MIDI CC number for value changes
+- `both_press_cc`: MIDI CC number for simultaneous press action
+- `activity_channel_cc`: MIDI CC number for activity indication
+- `speed_initial`/`speed`/`accel_rate`: Control response sensitivity
 
 ## Troubleshooting
 

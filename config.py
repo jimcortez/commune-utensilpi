@@ -29,6 +29,18 @@ LOG_TIMESTAMPS = True  # Enable/disable timestamps in log messages
 ENABLE_TOUCH_LOGGING = False  # Set to True to log every touch event (can be slow)
 ENABLE_MIDI_LOGGING = False   # Set to True to log MIDI messages (can be slow)
 
+# Activity timeout settings (seconds)
+ACTIVITY_TIMEOUT = 0.5  # Timeout for regular slider activity
+BOTH_PRESSED_TIMEOUT = 10.0  # Timeout when both are pressed
+
+# All Both-Press Toggle Configuration
+ALL_BOTH_PRESS_TOGGLE_ENABLED = True  # Enable/disable the all both-press toggle feature
+ALL_BOTH_PRESS_CC_NUMBER = 108  # MIDI CC number for the all both-press toggle
+ALL_BOTH_PRESS_STABLE_TIME = 3.0  # Time (seconds) all sliders must be in both-press state before triggering
+ALL_BOTH_PRESS_MIN_DURATION = 10.0  # Minimum duration (seconds) the toggle stays active
+ALL_BOTH_PRESS_MAX_DURATION = 30.0  # Maximum duration (seconds) the toggle stays active
+ALL_BOTH_PRESS_COOLDOWN = 60.0  # Cooldown period (seconds) before the toggle can be triggered again
+
 # -----------------------------------------------------------------------------
 # Slider Configuration
 # -----------------------------------------------------------------------------

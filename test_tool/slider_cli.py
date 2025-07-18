@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import urwid
 import mido
 from mido import Message
-from config import SLIDERS
+from config import SLIDERS, ALL_BOTH_PRESS_TOGGLE_ENABLED, ALL_BOTH_PRESS_CC_NUMBER
 import time
 
 print(mido.get_output_names())
@@ -113,7 +113,7 @@ class SliderWidget(urwid.WidgetWrap):
         s = self.slider_state
         new_value = int(s.value)
         if new_value != s.last_sent_value:
-            print(f"Sending CC {s.config['cc_number']} value {new_value}")
+            #print(f"Sending CC {s.config['cc_number']} value {new_value}")
             self.midi.send(Message('control_change', channel=0, control=s.config["cc_number"], value=new_value))
             s.last_sent_value = new_value
 
@@ -137,11 +137,102 @@ class SliderWidget(urwid.WidgetWrap):
                 s.activity_on = False
                 self.update_display()
 
+class AllBothPressManager:
+    """Simple version of AllBothPressManager for the test tool."""
+    
+    def __init__(self, midi_interface):
+        self.midi = midi_interface
+        self.enabled = ALL_BOTH_PRESS_TOGGLE_ENABLED
+        self.cc_number = ALL_BOTH_PRESS_CC_NUMBER
+        
+        # State tracking
+        self.all_both_pressed = False
+        self.toggle_active = False
+        self.stable_start_time = None
+        self.toggle_start_time = None
+        self.last_trigger_time = 0
+        
+        # Timing configuration (simplified for test tool)
+        self.stable_time = 3.0
+        self.min_duration = 10.0
+        self.max_duration = 30.0
+        self.cooldown = 60.0
+        
+        if self.enabled:
+            print(f"All Both-Press Toggle enabled (CC {self.cc_number})")
+        else:
+            print("All Both-Press Toggle disabled")
+    
+    def update(self, slider_states, current_time):
+        """Update the all both-press state based on current slider states."""
+        if not self.enabled or not slider_states:
+            return False
+        
+        # Check if all sliders are in both-press state
+        all_both_pressed_now = all(s.both_pressed for s in slider_states if s.enabled)
+        
+        # State change detection
+        if all_both_pressed_now != self.all_both_pressed:
+            self.all_both_pressed = all_both_pressed_now
+            
+            if self.all_both_pressed:
+                # All sliders just entered both-press state
+                self.stable_start_time = current_time
+                print("All sliders entered both-press state - starting stable timer")
+            else:
+                # At least one slider left both-press state
+                self.stable_start_time = None
+                print("At least one slider left both-press state - resetting stable timer")
+        
+        # Check if we should trigger the toggle
+        if (self.all_both_pressed and 
+            not self.toggle_active and 
+            self.stable_start_time is not None and
+            current_time - self.stable_start_time >= self.stable_time and
+            current_time - self.last_trigger_time >= self.cooldown):
+            
+            # Trigger the toggle
+            self.toggle_active = True
+            self.toggle_start_time = current_time
+            self.last_trigger_time = current_time
+            
+            # Send MIDI CC ON
+            try:
+                self.midi.send(Message('control_change', channel=0, control=self.cc_number, value=127))
+                print(f"All Both-Press Toggle ACTIVATED (CC {self.cc_number})")
+            except Exception as e:
+                print(f"Failed to send All Both-Press Toggle MIDI: {e}")
+            
+            return True
+        
+        # Check if we should deactivate the toggle
+        if self.toggle_active:
+            toggle_duration = current_time - self.toggle_start_time
+            
+            # Deactivate if minimum duration reached and not all sliders are still both-pressed
+            if (toggle_duration >= self.min_duration and not self.all_both_pressed) or \
+               toggle_duration >= self.max_duration:
+                
+                self.toggle_active = False
+                self.toggle_start_time = None
+                
+                # Send MIDI CC OFF
+                try:
+                    self.midi.send(Message('control_change', channel=0, control=self.cc_number, value=0))
+                    print(f"All Both-Press Toggle DEACTIVATED (CC {self.cc_number}) after {toggle_duration:.1f}s")
+                except Exception as e:
+                    print(f"Failed to send All Both-Press Toggle MIDI: {e}")
+                
+                return True
+        
+        return False
+
 class SliderUI:
     def __init__(self, sliders):
         self.midi = MidiInterface('MadMapper In')
         self.slider_states = [SliderState(cfg) for cfg in sliders]
         self.widgets = [SliderWidget(state, self.midi) for state in self.slider_states]
+        self.all_both_press_manager = AllBothPressManager(self.midi)
         self.listbox = urwid.ListBox(urwid.SimpleFocusListWalker(self.widgets))
         self.focus_index = 0
         self.widgets[self.focus_index].set_focus(True)
@@ -177,8 +268,11 @@ class SliderUI:
         self._main_loop.run()
 
     def _periodic_activity_check(self, loop, user_data):
+        current_time = time.monotonic()
         for w in self.widgets:
             w.activity_check()
+        # Update all both-press manager
+        self.all_both_press_manager.update(self.slider_states, current_time)
         loop.set_alarm_in(0.1, self._periodic_activity_check)
 
 def main():

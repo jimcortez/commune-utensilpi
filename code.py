@@ -20,13 +20,14 @@ from mpr121_manager import (
 )
 from midi_manager import MIDIManager
 from display_manager import DisplayManager
-from touch_slider import create_touch_sliders, update_touch_cache_for_all_boards, update_all_sliders, get_slider_status
+from touch_slider import create_touch_sliders, update_touch_cache_for_all_boards, update_all_sliders, get_slider_status, activity_check_all_sliders
+from all_both_press_manager import AllBothPressManager
 
 # -----------------------------------------------------------------------------
 # Main Application
 # -----------------------------------------------------------------------------
 
-def print_system_status(mpr121_boards, display_manager, touch_sliders):
+def print_system_status(mpr121_boards, display_manager, touch_sliders, all_both_press_manager=None):
     """Print comprehensive system status information."""
     logger = get_logger()
     logger.info("=== System Status ===")
@@ -53,6 +54,19 @@ def print_system_status(mpr121_boards, display_manager, touch_sliders):
     
     if slider_status["disabled_sliders"] > 0:
         logger.warn(lazy_format("Disabled sliders: CC {}", slider_status["disabled_cc_numbers"]))
+    
+    # All Both-Press Toggle Status
+    if all_both_press_manager:
+        toggle_status = all_both_press_manager.get_status()
+        if toggle_status["enabled"]:
+            state = "ACTIVE" if toggle_status["toggle_active"] else "INACTIVE"
+            both_pressed = "YES" if toggle_status["all_both_pressed"] else "NO"
+            logger.info(lazy_format("All Both-Press Toggle: {} (CC {}) - State: {}, All Both-Pressed: {}", 
+                                   "ENABLED", toggle_status["cc_number"], state, both_pressed))
+        else:
+            logger.info("All Both-Press Toggle: DISABLED")
+    else:
+        logger.warn("All Both-Press Toggle: NOT AVAILABLE")
     
     # Overall System Health
     if mpr121_status["all_connected"] and slider_status["enabled_sliders"] == slider_status["total_sliders"]:
@@ -118,6 +132,14 @@ def main():
         logger.warn("Cannot create touch sliders - missing MIDI or MPR121")
         touch_sliders = []
     
+    # Initialize all both-press toggle manager
+    logger.info("Initializing all both-press toggle manager...")
+    if midi_available and midi_manager:
+        all_both_press_manager = AllBothPressManager(midi_manager.get_interface())
+    else:
+        logger.warn("Cannot create all both-press manager - missing MIDI")
+        all_both_press_manager = None
+    
     # Setup display
     display_manager.setup_display(touch_sliders)
     
@@ -131,7 +153,7 @@ def main():
     led_calibration_manager = get_led_calibration_manager()
     
     # Print system status
-    print_system_status(mpr121_boards, display_manager, touch_sliders)
+    print_system_status(mpr121_boards, display_manager, touch_sliders, all_both_press_manager)
     
     logger.info("=== System Ready ===")
     logger.info("Commune art installation is now running.")
@@ -174,8 +196,13 @@ def main():
             # Update all sliders using cached data
             if touch_sliders:
                 display_needs_update = update_all_sliders(touch_sliders)
+                activity_check_all_sliders(touch_sliders)
             else:
                 display_needs_update = False
+            
+            # Update all both-press toggle manager
+            if all_both_press_manager and touch_sliders:
+                all_both_press_manager.update(touch_sliders, current_time)
             
             # Update display if needed
             if display_needs_update:

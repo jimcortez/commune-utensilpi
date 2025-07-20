@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
-LOOP_DELAY = 0.01  # 10ms loop delay for faster response
+LOOP_DELAY = 0.01  # 10ms loop delay for slower response    
 DEBOUNCE_INTERVAL = 0.1  # 100ms debounce time for faster touch response
 
 # MPR121 Default Thresholds (from Adafruit MPR121 library)
@@ -15,6 +15,10 @@ CALIBRATION_CHECK_INTERVAL = 60  # Check calibration every 60 seconds
 LED_CALIBRATION_DELAY = 20  # Seconds after first MIDI to trigger re-calibration
 LED_CALIBRATION_ENABLED = True  # Enable/disable LED startup calibration
 
+# MPR121 calibration control
+STARTUP_CALIBRATION_ENABLED = True  # Enable/disable startup MPR121 calibration and health checks
+PERIODIC_CALIBRATION_ENABLED = False  # Enable/disable periodic calibration health checks
+
 # Display configuration
 DISPLAY_I2C_ADDRESS = 0x3D
 DISPLAY_WIDTH = 128
@@ -22,12 +26,14 @@ DISPLAY_HEIGHT = 64
 
 # Logging configuration
 # Options: ERROR, WARN, INFO, DEBUG
-LOG_LEVEL = "INFO"  # Set to DEBUG for verbose output, ERROR for minimal output
+LOG_LEVEL = "DEBUG"  # Set to DEBUG for verbose output, ERROR for minimal output
 LOG_TIMESTAMPS = True  # Enable/disable timestamps in log messages
 
 # Performance settings
-ENABLE_TOUCH_LOGGING = False  # Set to True to log every touch event (can be slow)
-ENABLE_MIDI_LOGGING = False   # Set to True to log MIDI messages (can be slow)
+ENABLE_TOUCH_LOGGING = True  # Set to True to log every touch event (can be slow)
+ENABLE_MIDI_LOGGING = True   # Set to True to log MIDI messages (can be slow)
+ENABLE_I2C_HISTORY = False    # Set to True to store I2C operation history (uses memory)
+ENABLE_I2C_DEBUG_LOGGING = False  # Set to True to log individual I2C operations (can be verbose)
 
 # Activity timeout settings (seconds)
 ACTIVITY_TIMEOUT = 0.5  # Timeout for regular slider activity

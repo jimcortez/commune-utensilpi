@@ -1,8 +1,7 @@
 import time
-from enum import Enum
 
-class LogLevel(Enum):
-    """Log levels in order of increasing verbosity."""
+# Log levels in order of increasing verbosity (replacing enum)
+class LogLevel:
     ERROR = 0
     WARN = 1
     INFO = 2
@@ -26,7 +25,7 @@ class Logger:
     
     def _log(self, level, level_name, message_or_callable):
         """Internal logging method with lazy evaluation support."""
-        if level.value <= self.level.value:
+        if level <= self.level:
             # If message is a callable, execute it to get the actual message
             if callable(message_or_callable):
                 message = message_or_callable()
@@ -58,11 +57,11 @@ class Logger:
     
     def is_debug_enabled(self):
         """Check if debug logging is enabled."""
-        return self.level.value >= LogLevel.DEBUG.value
+        return self.level >= LogLevel.DEBUG
     
     def is_info_enabled(self):
         """Check if info logging is enabled."""
-        return self.level.value >= LogLevel.INFO.value
+        return self.level >= LogLevel.INFO
 
 # Global logger instance
 logger = Logger(level=LogLevel.INFO)

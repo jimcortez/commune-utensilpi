@@ -95,6 +95,48 @@ The system behavior can be customized by editing `config.py`:
 - `ALL_BOTH_PRESS_TOGGLE_ENABLED`: Enable/disable the feature (default: True)
 - `ALL_BOTH_PRESS_CC_NUMBER`: MIDI CC number for the toggle (default: 108)
 - `ALL_BOTH_PRESS_STABLE_TIME`: Time all sliders must be both-pressed before triggering (default: 3.0s)
+
+## Troubleshooting
+
+### Calibration Issues
+
+If you see calibration warnings like:
+```
+[   9.3s] INFO: MPR121 0x5B Calibration Health:
+[   9.4s] WARN:   Pin 1: WARNING - Baseline=12, Filtered=45, Delta=-33, Stable=True
+[   9.4s] WARN:     ⚠️  <closure>
+```
+
+**What this means:**
+- **Baseline=12**: Very low baseline (normal range is 50-200)
+- **Filtered=45**: Current sensor reading
+- **Delta=-33**: Difference between baseline and filtered (12 - 45 = -33)
+- **Stable=True**: Baseline is stable
+- **⚠️ <closure>**: Sensor detects a touch (from Adafruit library)
+
+**Common causes and solutions:**
+
+1. **Sensor is being touched during calibration**
+   - Remove any objects touching the sensor
+   - Wait for sensor to stabilize without touch
+   - Check if utensil is accidentally touching
+
+2. **Electrical interference**
+   - Check for nearby metal objects or electronics
+   - Verify sensor connections are secure
+   - Try cleaning the sensor area
+
+3. **Poor connections**
+   - Check electrical connections
+   - Verify sensor is properly grounded
+   - Clean sensor surface if dirty
+
+**Run the calibration test:**
+```bash
+python calibration_test.py
+```
+
+This will provide detailed analysis of your sensor calibration status.
 - `ALL_BOTH_PRESS_MIN_DURATION`: Minimum toggle duration (default: 10.0s)
 - `ALL_BOTH_PRESS_MAX_DURATION`: Maximum toggle duration (default: 30.0s)
 - `ALL_BOTH_PRESS_COOLDOWN`: Cooldown period between triggers (default: 60.0s)

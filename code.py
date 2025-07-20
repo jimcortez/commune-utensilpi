@@ -6,9 +6,14 @@ from config import (
     LOOP_DELAY, 
     CALIBRATION_CHECK_INTERVAL, 
     LOG_LEVEL, 
-    LOG_TIMESTAMPS
+    LOG_TIMESTAMPS,
+    LED_CALIBRATION_ENABLED,
+    STARTUP_CALIBRATION_ENABLED,
+    PERIODIC_CALIBRATION_ENABLED,
+    ENABLE_I2C_DEBUG_LOGGING
 )
 from logger import get_logger, set_log_level, LogLevel, lazy_format
+from i2c_logger import get_i2c_logger
 from mpr121_manager import (
     scan_i2c, 
     initialize_mpr121_boards, 
@@ -68,6 +73,10 @@ def print_system_status(mpr121_boards, display_manager, touch_sliders, all_both_
     else:
         logger.warn("All Both-Press Toggle: NOT AVAILABLE")
     
+    # I2C Traffic Statistics
+    i2c_logger = get_i2c_logger()
+    i2c_logger.print_statistics()
+    
     # Overall System Health
     if mpr121_status["all_connected"] and slider_status["enabled_sliders"] == slider_status["total_sliders"]:
         logger.info("System Health: EXCELLENT - All components operational")
@@ -116,11 +125,14 @@ def main():
     
     # Setup MPR121 sensitivity with error handling
     if mpr121_boards:
-        try:
-            setup_mpr121_sensitivity(mpr121_boards)
-        except Exception as e:
-            logger.error(lazy_format("Error during MPR121 sensitivity setup: {}", e))
-            logger.warn("Continuing with default sensitivity settings")
+        if STARTUP_CALIBRATION_ENABLED:
+            try:
+                setup_mpr121_sensitivity(mpr121_boards)
+            except Exception as e:
+                logger.error(lazy_format("Error during MPR121 sensitivity setup: {}", e))
+                logger.warn("Continuing with default sensitivity settings")
+        else:
+            logger.info("Startup calibration disabled - using default MPR121 settings")
     else:
         logger.warn("No MPR121 boards available - skipping sensitivity setup")
     
@@ -148,6 +160,7 @@ def main():
     
     # Calibration monitoring variables
     last_calibration_check = time.monotonic()
+    last_i2c_stats_time = time.monotonic()
     
     # Get LED calibration manager
     led_calibration_manager = get_led_calibration_manager()
@@ -164,7 +177,10 @@ def main():
         logger.warn("No touch sliders available - touch functionality disabled")
     
     if midi_available:
-        logger.info("Waiting for first MIDI messages to start LED calibration timer...")
+        if LED_CALIBRATION_ENABLED:
+            logger.info("Waiting for first MIDI messages to start LED calibration timer...")
+        else:
+            logger.info("MIDI available (LED calibration disabled)")
     else:
         logger.warn("MIDI not available - LED calibration will not work")
     
@@ -210,16 +226,30 @@ def main():
             
             # Periodic calibration health check
             if current_time - last_calibration_check >= CALIBRATION_CHECK_INTERVAL:
-                if mpr121_boards:
+                if mpr121_boards and PERIODIC_CALIBRATION_ENABLED:
                     periodic_calibration_check(mpr121_boards)
                 else:
                     logger.warn("No MPR121 boards available - skipping periodic calibration check")
                 last_calibration_check = current_time
             
+            # Periodic I2C statistics reporting (every 60 seconds)
+            if current_time - last_i2c_stats_time >= 60.0:
+                i2c_logger = get_i2c_logger()
+                i2c_logger.print_statistics()
+                last_i2c_stats_time = current_time
+            
             time.sleep(LOOP_DELAY)
             
     except KeyboardInterrupt:
         logger.info("Shutting down Commune art installation...")
+        
+        # Print final I2C statistics
+        i2c_logger = get_i2c_logger()
+        logger.info("=== Final I2C Traffic Statistics ===")
+        i2c_logger.print_statistics()
+        if ENABLE_I2C_DEBUG_LOGGING:
+            i2c_logger.print_recent_operations(20)
+        
         logger.info("Thank you for experiencing the art piece!")
     except Exception as e:
         logger.error(lazy_format("Unexpected error in main loop: {}", e))

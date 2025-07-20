@@ -3,6 +3,7 @@ from adafruit_midi.control_change import ControlChange
 from adafruit_debouncer import Debouncer
 from config import DEBOUNCE_INTERVAL, SLIDERS, ENABLE_TOUCH_LOGGING, ACTIVITY_TIMEOUT, BOTH_PRESSED_TIMEOUT
 from logger import get_logger, lazy_format
+from i2c_logger import get_i2c_logger
 
 # Get logger instance
 logger = get_logger()
@@ -61,6 +62,7 @@ class TouchSlider:
         try:
             # Single I2C read to get all touch states
             self.cached_touched_pins = self.mpr121.touched_pins
+                
         except Exception as e:
             logger.error(lazy_format("Error updating touch cache for slider {}: {}", 
                                    self.config["cc_number"], e))

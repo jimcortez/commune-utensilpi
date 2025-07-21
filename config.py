@@ -17,7 +17,7 @@ PERIODIC_CALIBRATION_ENABLED = True  # Periodic calibration checks
 
 # LED startup calibration (for electrical interference compensation)
 LED_CALIBRATION_DELAY = 20  # Seconds after first MIDI to trigger re-calibration
-LED_CALIBRATION_ENABLED = False  # Disable LED calibration - use simple approach like working old code
+LED_CALIBRATION_ENABLED = True  # Enable LED calibration
 
 # Display configuration
 DISPLAY_I2C_ADDRESS = 0x3D

@@ -15,12 +15,7 @@ from logger import get_logger, lazy_format
 logger = get_logger()
 
 # Import config to check if history and debug logging are enabled
-try:
-    from config import ENABLE_I2C_HISTORY, ENABLE_I2C_DEBUG_LOGGING
-except ImportError:
-    # Default to False if config not available
-    ENABLE_I2C_HISTORY = False
-    ENABLE_I2C_DEBUG_LOGGING = False
+from config import ENABLE_I2C_HISTORY, ENABLE_I2C_DEBUG_LOGGING
 
 class I2CLogger:
     """Tracks and logs all I2C operations."""
@@ -35,7 +30,7 @@ class I2CLogger:
             'last_reset_time': time.monotonic()
         }
         self.operation_history = []
-        self.max_history = 50  # Keep last 50 operations to reduce memory usage
+        self.max_history = 500  # Keep last 50 operations to reduce memory usage
     
     def log_i2c_read(self, device_addr, register, bytes_read, caller_info=""):
         """Log an I2C read operation."""

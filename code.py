@@ -190,15 +190,15 @@ def main():
             if midi_available and midi_manager:
                 midi_manager.receive_messages(touch_sliders, current_time)
             
-            # Skip LED calibration - use simple approach like working old code
-            # if led_calibration_manager.should_trigger_led_calibration(current_time):
-            #     led_calibration_manager.mark_led_calibration_triggered()
-            #     logger.info("Triggering LED startup calibration...")
-            #     if mpr121_boards:
-            #         perform_led_startup_calibration(mpr121_boards)
-            #     else:
-            #         logger.warn("No MPR121 boards available - skipping LED calibration")
-            #     led_calibration_manager.mark_led_calibration_completed()
+            # LED startup calibration
+            if led_calibration_manager.should_trigger_led_calibration(current_time):
+                led_calibration_manager.mark_led_calibration_triggered()
+                logger.info("Triggering LED startup calibration...")
+                if mpr121_boards:
+                    perform_led_startup_calibration(mpr121_boards)
+                else:
+                    logger.warn("No MPR121 boards available - skipping LED calibration")
+                led_calibration_manager.mark_led_calibration_completed()
             
             # Update touch cache for all MPR121 boards (single I2C read per board)
             if mpr121_boards and touch_sliders:
@@ -217,6 +217,7 @@ def main():
             
             # Update display if needed
             if display_needs_update:
+                logger.debug("Updating display...")
                 display_manager.update_display(touch_sliders)
             
             if current_time - last_calibration_check >= CALIBRATION_CHECK_INTERVAL:

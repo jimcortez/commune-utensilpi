@@ -11,13 +11,13 @@ MPR121_DEFAULT_RELEASE_THRESHOLD = 6
 # Calibration monitoring
 CALIBRATION_CHECK_INTERVAL = 60  # Check calibration every 60 seconds
 
+# MPR121 calibration control
+STARTUP_CALIBRATION_ENABLED = False  # Disable complex calibration - use simple approach like working old code
+PERIODIC_CALIBRATION_ENABLED = False  # Disable periodic calibration checks
+
 # LED startup calibration (for electrical interference compensation)
 LED_CALIBRATION_DELAY = 20  # Seconds after first MIDI to trigger re-calibration
-LED_CALIBRATION_ENABLED = True  # Enable/disable LED startup calibration
-
-# MPR121 calibration control
-STARTUP_CALIBRATION_ENABLED = True  # Enable/disable startup MPR121 calibration and health checks
-PERIODIC_CALIBRATION_ENABLED = False  # Enable/disable periodic calibration health checks
+LED_CALIBRATION_ENABLED = False  # Disable LED calibration - use simple approach like working old code
 
 # Display configuration
 DISPLAY_I2C_ADDRESS = 0x3D

@@ -1,7 +1,6 @@
 import time
 import board
 import adafruit_mpr121
-from mpr121_logged import create_logged_mpr121
 from i2c_logger import log_batch_read, log_i2c_read, log_i2c_write, log_i2c_scan
 from config import (
     MPR121_DEFAULT_TOUCH_THRESHOLD, 
@@ -601,15 +600,15 @@ def initialize_mpr121_boards():
                 failed_initializations += 1
                 continue
             
-            # Try to initialize the MPR121 with logging
-            mpr = create_logged_mpr121(i2c, address=addr)
+            # Use direct MPR121 initialization like the working old code
+            mpr = adafruit_mpr121.MPR121(i2c, address=addr)
             mpr121_boards[addr] = mpr
             logger.info(lazy_format("MPR121 initialized at 0x{:02X}", addr))
             
-            # Configure touch thresholds
+            # Simple reset like the working old code
             try:
                 mpr.reset()
-                time.sleep(0.1)
+                time.sleep(0.1)  # Same delay as working code
                 logger.debug(lazy_format("  Reset completed for 0x{:02X}", addr))
             except Exception as e:
                 logger.warn(lazy_format("  Reset failed for 0x{:02X}: {}", addr, e))
@@ -617,9 +616,7 @@ def initialize_mpr121_boards():
             # Debug: Print baseline data
             if logger.is_debug_enabled():
                 try:
-                    # Use batch read to get all baseline and filtered data at once
-                    touched_state, baselines, filtered_data = get_all_sensor_data(mpr)
-                    baseline = [(i, baselines[i], filtered_data[i]) for i in range(12)]
+                    baseline = [(i, mpr.baseline_data(i), mpr.filtered_data(i)) for i in range(12)]
                     logger.debug(lazy_format("MPR121 0x{:02X} baseline data: {}", addr, baseline))
                 except Exception as e:
                     logger.warn(lazy_format("  Could not read baseline data for 0x{:02X}: {}", addr, e))

@@ -10,7 +10,8 @@ from config import (
     LED_CALIBRATION_ENABLED,
     STARTUP_CALIBRATION_ENABLED,
     PERIODIC_CALIBRATION_ENABLED,
-    ENABLE_I2C_DEBUG_LOGGING
+    ENABLE_I2C_DEBUG_LOGGING,
+    SLIDERS
 )
 from logger import get_logger, set_log_level, LogLevel, lazy_format
 from i2c_logger import get_i2c_logger
@@ -74,8 +75,9 @@ def print_system_status(mpr121_boards, display_manager, touch_sliders, all_both_
         logger.warn("All Both-Press Toggle: NOT AVAILABLE")
     
     # I2C Traffic Statistics
-    i2c_logger = get_i2c_logger()
-    i2c_logger.print_statistics()
+    if ENABLE_I2C_DEBUG_LOGGING:
+        i2c_logger = get_i2c_logger()
+        i2c_logger.print_statistics()
     
     # Overall System Health
     if mpr121_status["all_connected"] and slider_status["enabled_sliders"] == slider_status["total_sliders"]:
@@ -123,23 +125,13 @@ def main():
     logger.info("Initializing MPR121 boards...")
     mpr121_boards = initialize_mpr121_boards()
     
-    # Setup MPR121 sensitivity with error handling
-    if mpr121_boards:
-        if STARTUP_CALIBRATION_ENABLED:
-            try:
-                setup_mpr121_sensitivity(mpr121_boards)
-            except Exception as e:
-                logger.error(lazy_format("Error during MPR121 sensitivity setup: {}", e))
-                logger.warn("Continuing with default sensitivity settings")
-        else:
-            logger.info("Startup calibration disabled - using default MPR121 settings")
-    else:
-        logger.warn("No MPR121 boards available - skipping sensitivity setup")
+    # Skip complex sensitivity setup - use default MPR121 settings like working old code
+    logger.info("Using default MPR121 settings (no complex calibration)")
     
     # Create touch sliders
     logger.info("Creating touch sliders...")
     if midi_available and mpr121_boards and midi_manager:
-        touch_sliders = create_touch_sliders(mpr121_boards, midi_manager.get_interface())
+        touch_sliders = create_touch_sliders(mpr121_boards, midi_manager.get_interface(), SLIDERS)
     else:
         logger.warn("Cannot create touch sliders - missing MIDI or MPR121")
         touch_sliders = []
@@ -195,15 +187,15 @@ def main():
             if midi_available and midi_manager:
                 midi_manager.receive_messages(touch_sliders, current_time)
             
-            # Check if LED calibration should be triggered
-            if led_calibration_manager.should_trigger_led_calibration(current_time):
-                led_calibration_manager.mark_led_calibration_triggered()
-                logger.info("Triggering LED startup calibration...")
-                if mpr121_boards:
-                    perform_led_startup_calibration(mpr121_boards)
-                else:
-                    logger.warn("No MPR121 boards available - skipping LED calibration")
-                led_calibration_manager.mark_led_calibration_completed()
+            # Skip LED calibration - use simple approach like working old code
+            # if led_calibration_manager.should_trigger_led_calibration(current_time):
+            #     led_calibration_manager.mark_led_calibration_triggered()
+            #     logger.info("Triggering LED startup calibration...")
+            #     if mpr121_boards:
+            #         perform_led_startup_calibration(mpr121_boards)
+            #     else:
+            #         logger.warn("No MPR121 boards available - skipping LED calibration")
+            #     led_calibration_manager.mark_led_calibration_completed()
             
             # Update touch cache for all MPR121 boards (single I2C read per board)
             if mpr121_boards and touch_sliders:
@@ -224,30 +216,32 @@ def main():
             if display_needs_update:
                 display_manager.update_display(touch_sliders)
             
-            # Periodic calibration health check
-            if current_time - last_calibration_check >= CALIBRATION_CHECK_INTERVAL:
-                if mpr121_boards and PERIODIC_CALIBRATION_ENABLED:
-                    periodic_calibration_check(mpr121_boards)
-                else:
-                    logger.warn("No MPR121 boards available - skipping periodic calibration check")
-                last_calibration_check = current_time
+            # Skip periodic calibration checks - use simple approach like working old code
+            # if current_time - last_calibration_check >= CALIBRATION_CHECK_INTERVAL:
+            #     if mpr121_boards and PERIODIC_CALIBRATION_ENABLED:
+            #         periodic_calibration_check(mpr121_boards)
+            #     else:
+            #         logger.warn("No MPR121 boards available - skipping periodic calibration check")
+            #     last_calibration_check = current_time
             
             # Periodic I2C statistics reporting (every 60 seconds)
-            if current_time - last_i2c_stats_time >= 60.0:
-                i2c_logger = get_i2c_logger()
-                i2c_logger.print_statistics()
-                last_i2c_stats_time = current_time
+            if ENABLE_I2C_DEBUG_LOGGING:
+                if current_time - last_i2c_stats_time >= 60.0:
+                    i2c_logger = get_i2c_logger()
+                    i2c_logger.print_statistics()
+                    last_i2c_stats_time = current_time
             
             time.sleep(LOOP_DELAY)
             
     except KeyboardInterrupt:
         logger.info("Shutting down Commune art installation...")
         
-        # Print final I2C statistics
-        i2c_logger = get_i2c_logger()
-        logger.info("=== Final I2C Traffic Statistics ===")
-        i2c_logger.print_statistics()
         if ENABLE_I2C_DEBUG_LOGGING:
+            # Print final I2C statistics
+            i2c_logger = get_i2c_logger()
+            logger.info("=== Final I2C Traffic Statistics ===")
+            i2c_logger.print_statistics()
+
             i2c_logger.print_recent_operations(20)
         
         logger.info("Thank you for experiencing the art piece!")

@@ -5,7 +5,6 @@ import adafruit_displayio_ssd1306
 from adafruit_display_text import label
 from config import DISPLAY_I2C_ADDRESS, DISPLAY_WIDTH, DISPLAY_HEIGHT, SLIDERS
 from logger import get_logger, lazy_format
-from i2c_logger import log_i2c_scan
 
 # Get logger instance
 logger = get_logger()
@@ -67,7 +66,6 @@ class DisplayManager:
             try:
                 # Scan for devices at the display address
                 found = self.i2c.scan()
-                log_i2c_scan(found, "display_manager._test_i2c_communication")
                 if DISPLAY_I2C_ADDRESS in found:
                     logger.debug(lazy_format("Display found at 0x{:02X}", DISPLAY_I2C_ADDRESS))
                     return True

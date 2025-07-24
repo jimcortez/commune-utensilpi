@@ -10,11 +10,9 @@ from config import (
     LED_CALIBRATION_ENABLED,
     STARTUP_CALIBRATION_ENABLED,
     PERIODIC_CALIBRATION_ENABLED,
-    ENABLE_I2C_DEBUG_LOGGING,
     SLIDERS
 )
 from logger import get_logger, set_log_level, LogLevel, lazy_format
-from i2c_logger import get_i2c_logger
 from mpr121_manager import (
     scan_i2c, 
     initialize_mpr121_boards, 
@@ -73,11 +71,6 @@ def print_system_status(mpr121_boards, display_manager, touch_sliders, all_both_
             logger.info("All Both-Press Toggle: DISABLED")
     else:
         logger.warn("All Both-Press Toggle: NOT AVAILABLE")
-    
-    # I2C Traffic Statistics
-    if ENABLE_I2C_DEBUG_LOGGING:
-        i2c_logger = get_i2c_logger()
-        i2c_logger.print_statistics()
     
     # Overall System Health
     if mpr121_status["all_connected"] and slider_status["enabled_sliders"] == slider_status["total_sliders"]:
@@ -155,7 +148,6 @@ def main():
     
     # Calibration monitoring variables
     last_calibration_check = time.monotonic()
-    last_i2c_stats_time = time.monotonic()
     
     # Get LED calibration manager
     led_calibration_manager = get_led_calibration_manager()
@@ -227,25 +219,10 @@ def main():
                     logger.warn("No MPR121 boards available - skipping periodic calibration check")
                 last_calibration_check = current_time
             
-            # Periodic I2C statistics reporting (every 60 seconds)
-            if ENABLE_I2C_DEBUG_LOGGING:
-                if current_time - last_i2c_stats_time >= 60.0:
-                    i2c_logger = get_i2c_logger()
-                    i2c_logger.print_statistics()
-                    last_i2c_stats_time = current_time
-            
             time.sleep(LOOP_DELAY)
             
     except KeyboardInterrupt:
         logger.info("Shutting down Commune art installation...")
-        
-        if ENABLE_I2C_DEBUG_LOGGING:
-            # Print final I2C statistics
-            i2c_logger = get_i2c_logger()
-            logger.info("=== Final I2C Traffic Statistics ===")
-            i2c_logger.print_statistics()
-
-            i2c_logger.print_recent_operations(20)
         
         logger.info("Thank you for experiencing the art piece!")
     except Exception as e:

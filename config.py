@@ -33,7 +33,7 @@ LOG_TIMESTAMPS = True  # Enable/disable timestamps in log messages
 ENABLE_TOUCH_LOGGING = True  # Set to True to log every touch event (can be slow)
 ENABLE_MIDI_LOGGING = True   # Set to True to log MIDI messages (can be slow)
 ENABLE_I2C_HISTORY = False    # Set to True to store I2C operation history (uses memory)
-ENABLE_I2C_DEBUG_LOGGING = False  # Set to True to log individual I2C operations (can be verbose)
+ENABLE_I2C_DEBUG_LOGGING = False # Set to True to log individual I2C operations (can be verbose)
 
 # Activity timeout settings (seconds)
 ACTIVITY_TIMEOUT = 0.5  # Timeout for regular slider activity

@@ -1,7 +1,6 @@
 import time
 import board
 import adafruit_mpr121
-from i2c_logger import log_batch_read, log_i2c_read, log_i2c_write, log_i2c_scan
 from config import (
     MPR121_DEFAULT_TOUCH_THRESHOLD, 
     MPR121_DEFAULT_RELEASE_THRESHOLD,
@@ -26,7 +25,6 @@ def scan_i2c():
 
     try:
         found = i2c.scan()
-        log_i2c_scan(found, "scan_i2c")
         if found:
             suffix = "s" if len(found) > 1 else ""
             logger.info(lazy_format("Found {} I2C device{}:", len(found), suffix))
@@ -57,13 +55,11 @@ def get_all_sensor_data(mpr):
         # 1 I2C call for all baselines (registers 0x1E-0x29)
         baseline_buf = bytearray(12)
         mpr._read_register_bytes(0x1E, baseline_buf, 12)  # MPR121_BASELINE_0 = 0x1E
-        log_batch_read(mpr._address, 0x1E, 12, "get_all_sensor_data.baselines")
         baselines = [baseline_buf[i] << 2 for i in range(12)]
         
         # 1 I2C call for all filtered data (registers 0x04-0x1B)
         filtered_buf = bytearray(24)  # 12 pins × 2 bytes each
         mpr._read_register_bytes(0x04, filtered_buf, 24)  # MPR121_FILTDATA_0L = 0x04
-        log_batch_read(mpr._address, 0x04, 24, "get_all_sensor_data.filtered")
         filtered = [((filtered_buf[i*2+1] << 8) | filtered_buf[i*2]) & 0xFFFF for i in range(12)]
         
         return touched, baselines, filtered
@@ -94,7 +90,6 @@ def get_all_baselines(mpr):
     try:
         baseline_buf = bytearray(12)
         mpr._read_register_bytes(0x1E, baseline_buf, 12)  # MPR121_BASELINE_0 = 0x1E
-        log_batch_read(mpr._address, 0x1E, 12, "get_all_baselines")
         return [baseline_buf[i] << 2 for i in range(12)]
     except Exception as e:
         logger.error(lazy_format("Error in batch baseline read: {}", e))
@@ -111,7 +106,6 @@ def get_all_filtered_data(mpr):
     try:
         filtered_buf = bytearray(24)  # 12 pins × 2 bytes each
         mpr._read_register_bytes(0x04, filtered_buf, 24)  # MPR121_FILTDATA_0L = 0x04
-        log_batch_read(mpr._address, 0x04, 24, "get_all_filtered_data")
         return [((filtered_buf[i*2+1] << 8) | filtered_buf[i*2]) & 0xFFFF for i in range(12)]
     except Exception as e:
         logger.error(lazy_format("Error in batch filtered data read: {}", e))
@@ -652,7 +646,6 @@ def _test_mpr121_i2c_communication(addr):
         try:
             # Scan for devices
             found = i2c.scan()
-            log_i2c_scan(found, f"_test_mpr121_i2c_communication(0x{addr:02X})")
             if addr in found:
                 logger.debug(lazy_format("MPR121 found at 0x{:02X}", addr))
                 return True

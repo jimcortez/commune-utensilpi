@@ -1,0 +1,1 @@
+rsync -avP ../commune-utensilpi 192.168.8.222:~/workspace/

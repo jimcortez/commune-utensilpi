@@ -4,7 +4,6 @@ from adafruit_debouncer import Debouncer
 from config import DEBOUNCE_INTERVAL, ENABLE_TOUCH_LOGGING, ACTIVITY_TIMEOUT, BOTH_PRESSED_TIMEOUT
 import config
 from logger import get_logger, lazy_format
-from i2c_logger import get_i2c_logger
 
 # Get logger instance
 logger = get_logger()
@@ -97,7 +96,6 @@ class TouchSlider:
         if not self.enabled:
             return False
             
-        activity_changed = False
         midi_sent = False
         try:
             # Debug: Print lambda value before updating debouncer
@@ -162,7 +160,7 @@ class TouchSlider:
             # Mark slider as disabled if we encounter persistent errors
             self.enabled = False
         
-        return midi_sent or activity_changed
+        return midi_sent
     
     def get_status(self):
         """Get status information about this slider."""

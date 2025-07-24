@@ -6,8 +6,6 @@
 import time
 import board
 import adafruit_mpr121
-from mpr121_logged import create_logged_mpr121
-from i2c_logger import log_i2c_scan, log_batch_read, get_i2c_logger
 from config import SLIDERS
 
 def test_mpr121_calibration():
@@ -23,7 +21,6 @@ def test_mpr121_calibration():
         pass
     try:
         found = i2c.scan()
-        log_i2c_scan(found, "calibration_test.scan_i2c")
         print(f"Found I2C devices: {[hex(addr) for addr in found]}")
     finally:
         i2c.unlock()
@@ -35,8 +32,8 @@ def test_mpr121_calibration():
         print(f"\nTesting MPR121 at 0x{addr:02X}")
         
         try:
-            # Initialize MPR121 with logging
-            mpr = create_logged_mpr121(i2c, address=addr)
+            # Initialize MPR121
+            mpr = adafruit_mpr121.MPR121(i2c, address=addr)
             print(f"✓ MPR121 at 0x{addr:02X} initialized successfully")
             
             # Reset and wait for calibration
@@ -103,8 +100,8 @@ def test_mpr121_calibration():
             print(f"✗ Error testing MPR121 at 0x{addr:02X}: {e}")
     
     # Print I2C statistics
-    i2c_logger = get_i2c_logger()
-    i2c_logger.print_statistics()
+    # i2c_logger = get_i2c_logger() # This line is removed as per the edit hint
+    # i2c_logger.print_statistics() # This line is removed as per the edit hint
 
 def get_all_sensor_data(mpr):
     """
@@ -120,13 +117,11 @@ def get_all_sensor_data(mpr):
         # 1 I2C call for all baselines (registers 0x1E-0x29)
         baseline_buf = bytearray(12)
         mpr._read_register_bytes(0x1E, baseline_buf, 12)  # MPR121_BASELINE_0 = 0x1E
-        log_batch_read(mpr._address, 0x1E, 12, "calibration_test.get_all_sensor_data.baselines")
         baselines = [baseline_buf[i] << 2 for i in range(12)]
         
         # 1 I2C call for all filtered data (registers 0x04-0x1B)
         filtered_buf = bytearray(24)  # 12 pins × 2 bytes each
         mpr._read_register_bytes(0x04, filtered_buf, 24)  # MPR121_FILTDATA_0L = 0x04
-        log_batch_read(mpr._address, 0x04, 24, "calibration_test.get_all_sensor_data.filtered")
         filtered = [((filtered_buf[i*2+1] << 8) | filtered_buf[i*2]) & 0xFFFF for i in range(12)]
         
         return touched, baselines, filtered
@@ -149,7 +144,6 @@ def get_all_baselines(mpr):
     try:
         baseline_buf = bytearray(12)
         mpr._read_register_bytes(0x1E, baseline_buf, 12)  # MPR121_BASELINE_0 = 0x1E
-        log_batch_read(mpr._address, 0x1E, 12, "calibration_test.get_all_baselines")
         return [baseline_buf[i] << 2 for i in range(12)]
     except Exception as e:
         print(f"Error in batch baseline read: {e}")

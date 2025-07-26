@@ -10,7 +10,8 @@ from config import (
     LED_CALIBRATION_ENABLED,
     STARTUP_CALIBRATION_ENABLED,
     PERIODIC_CALIBRATION_ENABLED,
-    SLIDERS
+    SLIDERS,
+    DEVICE_NAME
 )
 from logger import get_logger, set_log_level, LogLevel, lazy_format
 from mpr121_manager import (
@@ -34,7 +35,11 @@ from all_both_press_manager import AllBothPressManager
 def print_system_status(mpr121_boards, display_manager, touch_sliders, all_both_press_manager=None):
     """Print comprehensive system status information."""
     logger = get_logger()
+    
+    # Get device name
+    
     logger.info("=== System Status ===")
+    logger.info(lazy_format("Device: {}", DEVICE_NAME))
     
     # MPR121 Status
     mpr121_status = get_mpr121_status(mpr121_boards)
@@ -92,7 +97,10 @@ def main():
     set_log_level(log_level_map.get(LOG_LEVEL, LogLevel.INFO))
     
     logger = get_logger()
+    
+    # Read device name
     logger.info("=== Commune Art Installation - Utensils ===")
+    logger.info(lazy_format("Device: {}", DEVICE_NAME))
     logger.info("Initializing system...")
     
     # Initialize I2C and scan for devices
@@ -209,7 +217,7 @@ def main():
             
             # Update display if needed
             if display_needs_update:
-                logger.debug("Updating display...")
+                #logger.debug("Updating display...")
                 display_manager.update_display(touch_sliders)
             
             if current_time - last_calibration_check >= CALIBRATION_CHECK_INTERVAL:

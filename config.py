@@ -1,3 +1,6 @@
+
+import os
+
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
@@ -9,11 +12,11 @@ MPR121_DEFAULT_TOUCH_THRESHOLD = 12
 MPR121_DEFAULT_RELEASE_THRESHOLD = 6
 
 # Calibration monitoring
-CALIBRATION_CHECK_INTERVAL = 60  # Check calibration every 60 seconds
+CALIBRATION_CHECK_INTERVAL = 600  # Check calibration every 10 minutes
 
 # MPR121 calibration control
 STARTUP_CALIBRATION_ENABLED = True  # Complex calibration
-PERIODIC_CALIBRATION_ENABLED = True  # Periodic calibration checks
+PERIODIC_CALIBRATION_ENABLED = False  # Periodic calibration checks
 
 # LED startup calibration (for electrical interference compensation)
 LED_CALIBRATION_DELAY = 20  # Seconds after first MIDI to trigger re-calibration
@@ -47,6 +50,14 @@ ALL_BOTH_PRESS_MIN_DURATION = 10.0  # Minimum duration (seconds) the toggle stay
 ALL_BOTH_PRESS_MAX_DURATION = 30.0  # Maximum duration (seconds) the toggle stays active
 ALL_BOTH_PRESS_COOLDOWN = 60.0  # Cooldown period (seconds) before the toggle can be triggered again
 
+try:
+    with open("/device_name.txt", "r") as f:
+        dname = f.read().strip()
+        DEVICE_NAME = dname if dname else "UnknownDevice"
+except (OSError, IOError):
+    print('No device name file found')
+    DEVICE_NAME = "UnknownDevice"
+
 # -----------------------------------------------------------------------------
 # Slider Configuration
 # -----------------------------------------------------------------------------
@@ -62,13 +73,30 @@ ALL_BOTH_PRESS_COOLDOWN = 60.0  # Cooldown period (seconds) before the toggle ca
 #   accel_rate: Acceleration rate for held touches
 #   activity_channel_cc: MIDI CC number for activity (on while slider is moving, off when idle)
 
-SLIDERS = [
-    {"mpr121_address": 0x1A, "down_pin": 0,  "up_pin": 1,  "cc_number": 3,  "both_press_cc": 9,  "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 100},
-    {"mpr121_address": 0x1A, "down_pin": 2,  "up_pin": 3,  "cc_number": 14, "both_press_cc": 15, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 101},
-    {"mpr121_address": 0x1B, "down_pin": 0,  "up_pin": 1,  "cc_number": 20, "both_press_cc": 21, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 102},
-    {"mpr121_address": 0x1B, "down_pin": 2,  "up_pin": 3,  "cc_number": 22, "both_press_cc": 23, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 103},
-    {"mpr121_address": 0x5A, "down_pin": 0,  "up_pin": 1,  "cc_number": 24, "both_press_cc": 25, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 104},
-    {"mpr121_address": 0x5A, "down_pin": 2,  "up_pin": 3,  "cc_number": 26, "both_press_cc": 27, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 105},
-    {"mpr121_address": 0x5B, "down_pin": 0,  "up_pin": 1,  "cc_number": 28, "both_press_cc": 29, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 106},
-    {"mpr121_address": 0x5B, "down_pin": 2,  "up_pin": 3,  "cc_number": 30, "both_press_cc": 31, "initial_value": 64, "speed_initial": 1, "speed": 1, "accel_rate": 0.1, "activity_channel_cc": 107},
+#device 1
+SLIDERS1 = [
+    {"mpr121_address": 0x5A, "down_pin": 0,  "up_pin": 1,  "cc_number": 3,  "both_press_cc": 9,  "initial_value": 64, "speed_initial": 1, "speed": 0.75, "accel_rate": 0.1, "activity_channel_cc": 100},
+    {"mpr121_address": 0x5A, "down_pin": 2,  "up_pin": 3,  "cc_number": 14, "both_press_cc": 15, "initial_value": 64, "speed_initial": 1, "speed": 0.75, "accel_rate": 0.1, "activity_channel_cc": 101},
+    {"mpr121_address": 0x1A, "down_pin": 0,  "up_pin": 1,  "cc_number": 20, "both_press_cc": 21, "initial_value": 64, "speed_initial": 1, "speed": 0.75, "accel_rate": 0.1, "activity_channel_cc": 102},
+    {"mpr121_address": 0x1A, "down_pin": 2,  "up_pin": 3,  "cc_number": 22, "both_press_cc": 23, "initial_value": 64, "speed_initial": 1, "speed": 0.75, "accel_rate": 0.1, "activity_channel_cc": 103},
 ] 
+
+#device 2
+SLIDERS2 = [
+    {"mpr121_address": 0x5A, "down_pin": 0,  "up_pin": 1,  "cc_number": 24, "both_press_cc": 25, "initial_value": 64, "speed_initial": 1, "speed": 0.75, "accel_rate": 0.1, "activity_channel_cc": 104},
+    {"mpr121_address": 0x5A, "down_pin": 2,  "up_pin": 3,  "cc_number": 26, "both_press_cc": 27, "initial_value": 64, "speed_initial": 1, "speed": 0.75, "accel_rate": 0.1, "activity_channel_cc": 105},
+    {"mpr121_address": 0x5B, "down_pin": 0,  "up_pin": 1,  "cc_number": 28, "both_press_cc": 29, "initial_value": 64, "speed_initial": 1, "speed": 0.75, "accel_rate": 0.1, "activity_channel_cc": 106},
+    {"mpr121_address": 0x5B, "down_pin": 2,  "up_pin": 3,  "cc_number": 30, "both_press_cc": 31, "initial_value": 64, "speed_initial": 1, "speed": 0.75, "accel_rate": 0.1, "activity_channel_cc": 107},
+]
+
+SLIDERS = None
+
+if DEVICE_NAME == "device1":
+    SLIDERS = SLIDERS1
+    print('Using device1 config')
+elif DEVICE_NAME == "device2":
+    SLIDERS = SLIDERS2
+    print('Using device2 config')
+else:
+    print('No device name file found, using default device 1')
+    SLIDERS = SLIDERS1

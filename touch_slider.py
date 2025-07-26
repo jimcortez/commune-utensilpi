@@ -114,7 +114,7 @@ class TouchSlider:
                     self.midi.send(ControlChange(self.config["both_press_cc"], 127))
                     midi_sent = True
                     if ENABLE_TOUCH_LOGGING:
-                        logger.debug(lazy_format("Touch -> Button (CC {}) ON", self.config["both_press_cc"]))
+                        logger.debug(lazy_format("Touch -> Button ({} | {}-{} | CC {}) ON", hex(self.config["mpr121_address"]), self.config["up_pin"], self.config["down_pin"], self.config["both_press_cc"]))
                     self.both_pressed = True
                     self.activity_ping()
             else:
@@ -122,7 +122,7 @@ class TouchSlider:
                     self.midi.send(ControlChange(self.config["both_press_cc"], 0))
                     midi_sent = True
                     if ENABLE_TOUCH_LOGGING:
-                        logger.debug(lazy_format("Touch -> Button (CC {}) OFF", self.config["both_press_cc"]))
+                        logger.debug(lazy_format("Touch -> Button ({} | {}-{} | CC {}) OFF", hex(self.config["mpr121_address"]), self.config["up_pin"], self.config["down_pin"], self.config["both_press_cc"]))
                     self.both_pressed = False
                     self.activity_ping()
                 
@@ -151,7 +151,7 @@ class TouchSlider:
                     self.midi.send(ControlChange(self.config["cc_number"], new_value))
                     midi_sent = True
                     if ENABLE_TOUCH_LOGGING:
-                        logger.debug(lazy_format("Touch -> Slider (CC {}) = {}", self.config["cc_number"], new_value))
+                        logger.debug(lazy_format("Touch -> Slider ({} | {}-{} | CC {}) = {}", hex(self.config["mpr121_address"]), self.config["up_pin"], self.config["down_pin"], self.config["cc_number"], new_value))
                     self.last_sent_value = new_value
                     self.activity_ping()
             # Activity channel logic is now handled by activity_ping and activity_check
